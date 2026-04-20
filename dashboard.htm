@@ -11,30 +11,40 @@
 <style>
 body {
     font-family: 'Assistant', sans-serif;
-    background: #f8fafc; /* רקע אפור-בהיר מאוד */
+    background: #f1f5f9; /* רקע מעט כהה יותר כדי להבליט את הכרטיסיות הלבנות */
 }
 
 .card {
-    background: #ffffff; /* כרטיסיות לבנות */
+    background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* צללית עדינה */
+    border-radius: 1.25rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
 }
 
 .item {
-    background: #f8fafc; /* משימות אפורות-בהירות */
+    background: #ffffff;
     border: 1px solid #e2e8f0;
+    border-right: 5px solid #3b82f6; /* פס דגש כחול בולט */
     border-radius: 0.75rem;
+    transition: all 0.2s ease;
 }
 
 .item:hover {
-    border-color: #3b82f6; /* מסגרת כחולה במעבר עכבר */
-    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-right-color: #2563eb;
+}
+
+/* סגנון לשדה הקלט */
+.input-focus:focus {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 </style>
 </head>
 
-<body class="text-slate-900"> <div class="max-w-6xl mx-auto px-6 py-10 space-y-8">
+<body class="text-slate-900">
+
+<div class="max-w-6xl mx-auto px-6 py-10 space-y-8">
 
 <div class="flex justify-between items-center">
     <h1 class="text-2xl font-extrabold tracking-tight">
@@ -42,56 +52,60 @@ body {
     </h1>
 
     <button onclick="fetchErrors()"
-        class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm transition">
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-200 transition-all active:scale-95">
         רענן נתונים
     </button>
 </div>
 
-<div class="grid md:grid-cols-3 gap-4">
+<div class="grid md:grid-cols-3 gap-6">
 
-    <div class="card p-5">
-        <p class="text-xs text-slate-500 font-semibold">משימות פתוחות</p>
-        <h2 id="tasks-count" class="text-2xl font-black mt-1 text-slate-800">0</h2>
+    <div class="card p-6 border-b-4 border-b-blue-500">
+        <p class="text-xs text-slate-500 font-extrabold uppercase tracking-wider">משימות פתוחות</p>
+        <h2 id="tasks-count" class="text-3xl font-black mt-2 text-slate-800">0</h2>
     </div>
 
-    <div class="card p-5">
-        <p class="text-xs text-slate-500 font-semibold">תקלות פעילות</p>
-        <h2 id="errors-count" class="text-2xl font-black mt-1 text-red-600">0</h2>
+    <div class="card p-6 border-b-4 border-b-red-500">
+        <p class="text-xs text-slate-500 font-extrabold uppercase tracking-wider">תקלות פעילות</p>
+        <h2 id="errors-count" class="text-3xl font-black mt-2 text-red-600">0</h2>
     </div>
 
-    <div class="card p-5">
-        <p class="text-xs text-slate-500 font-semibold">סטטוס מערכת</p>
-        <h2 class="text-2xl font-black mt-1 text-green-600">Online</h2>
+    <div class="card p-6 border-b-4 border-b-green-500">
+        <p class="text-xs text-slate-500 font-extrabold uppercase tracking-wider">סטטוס מערכת</p>
+        <h2 class="text-3xl font-black mt-2 text-green-600 italic">Online</h2>
     </div>
 
 </div>
 
-<div class="grid lg:grid-cols-2 gap-6">
+<div class="grid lg:grid-cols-2 gap-8">
 
-<div class="card p-6 space-y-4">
+<div class="card p-8 space-y-6 bg-slate-50/50">
 
-    <h2 class="text-lg font-bold text-slate-800">משימות</h2>
+    <div class="flex items-center justify-between">
+        <h2 class="text-xl font-extrabold text-slate-800">📋 משימות לביצוע</h2>
+    </div>
 
-    <div class="flex gap-2">
+    <div class="flex gap-2 bg-white p-2 rounded-2xl shadow-inner border border-slate-200">
         <input id="new-task"
-            class="flex-1 bg-white border border-slate-300 p-3 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-            placeholder="הוסף משימה">
+            class="flex-1 bg-transparent p-3 rounded-lg text-base font-semibold outline-none"
+            placeholder="מה צריך לעשות?">
 
         <button onclick="addTask()"
-            class="bg-blue-600 hover:bg-blue-500 text-white px-4 rounded-lg text-sm font-bold shadow-sm transition">
+            class="bg-slate-800 hover:bg-black text-white px-6 rounded-xl text-sm font-black transition-all">
             הוסף
         </button>
     </div>
 
-    <ul id="tasks-list" class="space-y-2"></ul>
+    <ul id="tasks-list" class="space-y-3"></ul>
 
 </div>
 
 <div class="space-y-4">
 
-    <h2 class="text-lg font-bold text-slate-800">תקלות <span class="text-red-500">🚨</span></h2>
+    <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+        <span class="text-red-500">🚨</span> תקלות דחופות
+    </h2>
 
-    <div id="errors-feed" class="space-y-3"></div>
+    <div id="errors-feed" class="space-y-4"></div>
 
 </div>
 
@@ -111,26 +125,30 @@ function renderTasks(){
     list.innerHTML = '';
 
     if(!tasks.length){
-        list.innerHTML = `<div class="text-slate-400 font-semibold text-sm text-center py-6 border border-dashed border-slate-300 rounded-lg">אין משימות פתוחות, הכל נקי!</div>`;
+        list.innerHTML = `
+        <div class="text-slate-400 font-bold text-center py-10 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+            הכל מוכן! אין משימות פתוחות ✨
+        </div>`;
         return;
     }
 
     tasks.forEach((t,i)=>{
         list.innerHTML += `
-        <li class="item px-4 py-3 flex justify-between items-center group transition shadow-sm">
+        <li class="item px-5 py-4 flex justify-between items-center group shadow-md">
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-4">
                 <button onclick="completeTask(${i})"
-                    class="w-5 h-5 border-2 border-slate-300 rounded hover:border-blue-500 hover:bg-blue-50 transition flex items-center justify-center">
+                    class="w-6 h-6 border-2 border-blue-400 rounded-lg bg-white hover:bg-blue-500 hover:border-blue-500 transition-all flex items-center justify-center group/btn shadow-sm">
+                    <svg class="w-4 h-4 text-white opacity-0 group-hover/btn:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                 </button>
 
-                <span class="text-sm font-semibold text-slate-700">
+                <span class="text-base font-bold text-slate-800 tracking-tight">
                     ${t}
                 </span>
             </div>
 
             <button onclick="completeTask(${i})"
-                class="text-xs font-bold text-slate-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition">
+                class="text-xs font-black text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all uppercase tracking-tighter">
                 מחק
             </button>
 
@@ -154,13 +172,11 @@ function completeTask(i){
     renderTasks();
 }
 
-// התחברות למקש אנטר בשדה המשימות
+// Enter Key Listener
 document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('new-task');
     if (input) {
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') addTask();
-        });
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
     }
 });
 
@@ -179,7 +195,11 @@ async function fetchErrors(){
     const container = document.getElementById('errors-feed');
 
     if(!active.length){
-        container.innerHTML = `<div class="card p-10 text-center text-slate-500 font-bold text-lg shadow-sm border-dashed border-2 border-slate-200">הכל תקין במערכת 👍</div>`;
+        container.innerHTML = `
+        <div class="card p-12 text-center text-slate-400 font-bold border-dashed border-2 border-slate-200">
+            <span class="text-4xl block mb-2">✅</span>
+            הכל עובד תקין
+        </div>`;
         return;
     }
 
@@ -188,28 +208,28 @@ async function fetchErrors(){
         const key = item.key || d.key;
 
         return `
-        <div class="card p-5 space-y-4 shadow-sm hover:shadow-md transition">
+        <div class="card p-6 space-y-4 hover:border-blue-200 transition-colors shadow-lg">
 
-            <div class="flex justify-between items-center text-xs">
-                <span class="text-blue-800 bg-blue-50 px-2 py-1 rounded font-bold uppercase tracking-wide">
-                    🏢 ${d.Organization || 'ארגון כללי'}
+            <div class="flex justify-between items-center">
+                <span class="text-blue-700 bg-blue-100 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider">
+                    🏢 ${d.Organization || 'ארגון'}
                 </span>
-                <span class="text-slate-400 font-semibold">
+                <span class="text-slate-400 text-[11px] font-bold">
                     ${d.Timestamp ? new Date(d.Timestamp).toLocaleString('he-IL') : ''}
                 </span>
             </div>
 
-            <div class="text-base font-extrabold text-slate-900 leading-tight">
-                ${d.Scenario_Name || 'ללא שם'}
+            <div class="text-lg font-black text-slate-900">
+                ${d.Scenario_Name || 'סנריו ללא שם'}
             </div>
 
-            <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg text-[13px] font-mono text-slate-600 break-words leading-relaxed">
-                <span class="text-red-500 font-bold">>></span> ${d.Error_Type || 'שגיאה לא מוגדרת'}
+            <div class="bg-slate-900 p-4 rounded-xl text-[12px] font-mono text-blue-300 leading-relaxed shadow-inner border border-slate-800 overflow-x-auto">
+                <span class="text-red-500 font-bold">ERROR ></span> ${d.Error_Type || 'שגיאה'}
             </div>
 
             <button onclick="done('${key}')"
-                class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-lg text-sm font-bold shadow-md transition active:scale-[0.98]">
-                ✓ סגור תקלה
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-sm font-black shadow-md transition-all active:scale-[0.98]">
+                ✓ טיפלתי בזה
             </button>
 
         </div>`;
