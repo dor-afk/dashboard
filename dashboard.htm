@@ -27,7 +27,7 @@
             </h2>
             
             <div class="flex gap-3 relative z-10">
-                <input type="text" id="new-task" placeholder="מה צריך לעשות עכשיו?" class="flex-1 bg-slate-700/50 border border-slate-600 rounded-2xl px-5 py-4 text-base font-bold text-white placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:bg-slate-700 transition-all shadow-inner backdrop-blur-sm">
+                <input type="text" id="new-task" placeholder="מה צריך לעשות עכשיו?" class="flex-1 bg-slate-700 border border-slate-500 rounded-2xl px-5 py-4 text-base font-bold text-white placeholder-slate-400 focus:outline-none focus:border-slate-300 focus:bg-slate-600 transition-all shadow-inner">
                 <button id="add-task-btn" class="bg-slate-200 hover:bg-white text-slate-900 font-black px-8 py-4 rounded-2xl text-base shadow-lg transition-all active:translate-y-1">הוסף</button>
             </div>
 
@@ -72,15 +72,17 @@
             list.innerHTML = '';
             
             if (tasks.length === 0) {
-                list.innerHTML = '<li class="text-slate-400 text-sm font-bold text-center py-6 bg-slate-800/50 rounded-2xl border border-slate-700 backdrop-blur-sm">אין משימות פתוחות, אפשר לשתות קפה! ☕</li>';
+                // עיצוב למצב ריק שגם הוא בולט יותר עכשיו
+                list.innerHTML = '<li class="text-slate-200 text-sm font-bold text-center py-6 bg-slate-700 rounded-2xl border border-slate-600 shadow-inner">אין משימות פתוחות, אפשר לשתות קפה! ☕</li>';
                 return;
             }
 
             tasks.forEach((task, index) => {
+                // שינוי העיצוב של שורת המשימה: צבע Slate-600 סולידי עם גבול בהיר יותר
                 list.innerHTML += `
-                    <li class="flex justify-between items-center bg-slate-700/30 border border-slate-600 p-4 rounded-2xl shadow-sm backdrop-blur-sm transition-all hover:bg-slate-700/50">
-                        <span class="text-slate-100 font-bold text-base pl-4 leading-tight">${task}</span>
-                        <button onclick="window.completeTask(${index})" class="bg-emerald-500/90 hover:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95 whitespace-nowrap">✓ סיימתי</button>
+                    <li class="flex justify-between items-center bg-slate-600 border border-slate-400/50 p-4 rounded-2xl shadow-md transition-all hover:bg-slate-500">
+                        <span class="text-white font-bold text-base pl-4 leading-tight">${task}</span>
+                        <button onclick="window.completeTask(${index})" class="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 whitespace-nowrap">✓ סיימתי</button>
                     </li>
                 `;
             });
