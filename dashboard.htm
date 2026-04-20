@@ -18,6 +18,19 @@
     </nav>
 
     <main class="max-w-3xl mx-auto px-4">
+        
+        <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm flex flex-col gap-6 mb-8">
+            <h2 class="text-xl font-black text-slate-800">📋 צ'ק ליסט משימות</h2>
+            
+            <div class="flex gap-3">
+                <input type="text" id="new-task" placeholder="מה צריך לעשות?" class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 text-sm font-bold focus:outline-none focus:border-blue-400 focus:bg-white transition-all">
+                <button onclick="addTask()" class="bg-slate-800 hover:bg-black text-white font-bold px-6 py-3 rounded-2xl text-sm shadow-md transition-all active:translate-y-1">הוסף</button>
+            </div>
+
+            <ul id="tasks-list" class="flex flex-col gap-3">
+                </ul>
+        </div>
+
         <div id="errors-feed" class="grid gap-8">
             <div class="bg-white p-16 rounded-[2.5rem] text-center shadow-sm">
                 <p class="text-slate-400 font-bold animate-pulse">טוען נתונים מהמערכת...</p>
@@ -26,6 +39,62 @@
     </main>
 
     <script>
+        // ==========================================
+        // מערכת משימות (Checklist)
+        // ==========================================
+        
+        // משיכת משימות מהזיכרון של הדפדפן (כדי שלא יימחקו ברענון)
+        let tasks = JSON.parse(localStorage.getItem('dor_ops_tasks')) || [];
+
+        function renderTasks() {
+            const list = document.getElementById('tasks-list');
+            list.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                list.innerHTML = '<p class="text-slate-400 text-sm font-bold text-center py-4">אין משימות כרגע, הכל נקי! ✨</p>';
+                return;
+            }
+
+            tasks.forEach((task, index) => {
+                list.innerHTML += `
+                    <li class="flex justify-between items-center bg-blue-50/50 border border-blue-100 p-4 rounded-2xl">
+                        <span class="text-slate-700 font-bold text-sm pl-4">${task}</span>
+                        <button onclick="completeTask(${index})" class="bg-white border border-green-200 text-green-600 hover:bg-green-500 hover:text-white px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-sm">✓ בוצע</button>
+                    </li>
+                `;
+            });
+        }
+
+        function addTask() {
+            const input = document.getElementById('new-task');
+            const taskText = input.value.trim();
+            
+            if (taskText !== '') {
+                tasks.push(taskText);
+                localStorage.setItem('dor_ops_tasks', JSON.stringify(tasks));
+                input.value = ''; // ניקוי שדה הטקסט
+                renderTasks();
+            }
+        }
+
+        function completeTask(index) {
+            // מחיקת המשימה מהמערך ועדכון הזיכרון
+            tasks.splice(index, 1);
+            localStorage.setItem('dor_ops_tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        // האזנה למקש Enter בשדה הטקסט של המשימות
+        document.getElementById('new-task').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addTask();
+        });
+
+        // טעינת המשימות בפתיחת העמוד
+        renderTasks();
+
+        // ==========================================
+        // מערכת שגיאות (Make) - מקורי
+        // ==========================================
         const GET_DATA_URL = 'https://hook.eu1.make.com/29sgfpk1oi15bvihqyalezspk1dnithw'; 
         const UPDATE_STATUS_URL = 'https://hook.eu1.make.com/cuehxvvwthe9885ub50esv4w8sc1eqye'; 
 
