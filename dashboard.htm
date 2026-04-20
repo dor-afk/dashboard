@@ -19,16 +19,16 @@
 
     <main class="max-w-3xl mx-auto px-4">
         
-        <div class="bg-gradient-to-br from-blue-800 to-indigo-900 rounded-[2.5rem] p-8 shadow-2xl shadow-blue-900/20 flex flex-col gap-6 mb-12 border border-blue-700/50 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-[2.5rem] p-8 shadow-xl shadow-slate-900/10 flex flex-col gap-6 mb-12 border border-slate-700 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-64 h-64 bg-slate-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
             
             <h2 class="text-2xl font-black text-white flex items-center gap-3 relative z-10">
-                <span class="text-blue-300 text-3xl">📋</span> צ'ק ליסט משימות
+                <span class="text-slate-300 text-3xl">📝</span> צ'ק ליסט משימות
             </h2>
             
             <div class="flex gap-3 relative z-10">
-                <input type="text" id="new-task" placeholder="מה צריך לעשות עכשיו?" class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-base font-bold text-white placeholder-blue-200 focus:outline-none focus:border-blue-300 focus:bg-white/20 transition-all shadow-inner backdrop-blur-sm">
-                <button id="add-task-btn" class="bg-blue-400 hover:bg-blue-300 text-slate-900 font-black px-8 py-4 rounded-2xl text-base shadow-[0_0_15px_rgba(96,165,250,0.4)] transition-all active:translate-y-1">הוסף</button>
+                <input type="text" id="new-task" placeholder="מה צריך לעשות עכשיו?" class="flex-1 bg-slate-700/50 border border-slate-600 rounded-2xl px-5 py-4 text-base font-bold text-white placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:bg-slate-700 transition-all shadow-inner backdrop-blur-sm">
+                <button id="add-task-btn" class="bg-slate-200 hover:bg-white text-slate-900 font-black px-8 py-4 rounded-2xl text-base shadow-lg transition-all active:translate-y-1">הוסף</button>
             </div>
 
             <ul id="tasks-list" class="flex flex-col gap-3 relative z-10">
@@ -49,12 +49,11 @@
 
     <script>
         // ==========================================
-        // מערכת משימות - גרסה חסינת תקלות
+        // מערכת משימות
         // ==========================================
         
         let tasks = [];
         
-        // טעינה בטוחה: נוודא שמה שיש בזיכרון הוא אכן רשימה (Array) ולא קורס
         try {
             const saved = localStorage.getItem('dor_ops_tasks');
             if (saved) {
@@ -68,21 +67,20 @@
             tasks = [];
         }
 
-        // הגדרה גלובלית (window) כדי שה-HTML יכיר את הפונקציות בוודאות
         window.renderTasks = function() {
             const list = document.getElementById('tasks-list');
             list.innerHTML = '';
             
             if (tasks.length === 0) {
-                list.innerHTML = '<li class="text-blue-200 text-sm font-bold text-center py-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">אין משימות פתוחות, אפשר לשתות קפה! ☕</li>';
+                list.innerHTML = '<li class="text-slate-400 text-sm font-bold text-center py-6 bg-slate-800/50 rounded-2xl border border-slate-700 backdrop-blur-sm">אין משימות פתוחות, אפשר לשתות קפה! ☕</li>';
                 return;
             }
 
             tasks.forEach((task, index) => {
                 list.innerHTML += `
-                    <li class="flex justify-between items-center bg-white/10 border border-white/20 p-4 rounded-2xl shadow-sm backdrop-blur-sm transition-all hover:bg-white/15">
-                        <span class="text-white font-bold text-base pl-4 leading-tight">${task}</span>
-                        <button onclick="window.completeTask(${index})" class="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/30 active:scale-95 whitespace-nowrap">✓ סיימתי</button>
+                    <li class="flex justify-between items-center bg-slate-700/30 border border-slate-600 p-4 rounded-2xl shadow-sm backdrop-blur-sm transition-all hover:bg-slate-700/50">
+                        <span class="text-slate-100 font-bold text-base pl-4 leading-tight">${task}</span>
+                        <button onclick="window.completeTask(${index})" class="bg-emerald-500/90 hover:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95 whitespace-nowrap">✓ סיימתי</button>
                     </li>
                 `;
             });
@@ -106,7 +104,6 @@
             window.renderTasks();
         };
 
-        // חיבור אירועים ידני כדי לעקוף חסימות דפדפן אפשריות
         document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('add-task-btn');
             const input = document.getElementById('new-task');
