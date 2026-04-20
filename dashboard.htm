@@ -1,204 +1,214 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOR OPS - Monitor V4.5</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Assistant', sans-serif; background-color: #f8fafc; } </style>
-</head>
-<body class="min-h-screen pb-20 text-right">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOR OPS - Pro Dashboard</title>
 
-    <nav class="bg-slate-900 text-white p-5 shadow-lg mb-10 border-b-4 border-blue-600">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-extrabold tracking-tighter uppercase text-white">DOR <span class="text-blue-400">OPS</span></h1>
-            <button onclick="window.fetchErrors()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-xl font-bold text-sm shadow-lg transition-all active:scale-95">רענן נתונים</button>
-        </div>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
+
+<style>
+body {
+    font-family: 'Assistant', sans-serif;
+    background: #020617;
+}
+.glass {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+</style>
+</head>
+
+<body class="text-white flex">
+
+<!-- SIDEBAR -->
+<aside class="w-64 h-screen glass p-6 flex flex-col gap-6 fixed">
+
+    <h1 class="text-2xl font-black">
+        DOR <span class="text-blue-400">OPS</span>
+    </h1>
+
+    <nav class="flex flex-col gap-3 text-sm">
+        <a class="bg-blue-600 px-4 py-2 rounded-xl font-bold">דשבורד</a>
+        <a class="hover:bg-white/10 px-4 py-2 rounded-xl">משימות</a>
+        <a class="hover:bg-white/10 px-4 py-2 rounded-xl">תקלות</a>
     </nav>
 
-    <main class="max-w-3xl mx-auto px-4">
-        
-        <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200 flex flex-col gap-6 mb-12">
-            
-            <h2 class="text-xl font-black text-slate-800 flex items-center gap-3">
-                <span class="bg-blue-50 text-blue-500 p-2.5 rounded-2xl text-xl">📝</span> 
-                צ'ק ליסט משימות
-            </h2>
-            
-            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-[1.5rem] border border-slate-100 transition-all focus-within:border-blue-300 focus-within:bg-white shadow-inner">
-                <input type="text" id="new-task" placeholder="מה המשימה הבאה שלך?" class="flex-1 bg-transparent px-4 py-3 text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none">
-                <button id="add-task-btn" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 py-3 rounded-xl text-sm shadow-md transition-all active:scale-95">הוסף</button>
+    <div class="mt-auto">
+        <button onclick="fetchErrors()" 
+            class="w-full bg-white text-black py-2 rounded-xl font-bold hover:scale-105 transition">
+            רענן נתונים
+        </button>
+    </div>
+
+</aside>
+
+<!-- MAIN -->
+<main class="ml-64 w-full p-10 space-y-10">
+
+<!-- TOP STATS -->
+<div class="grid grid-cols-3 gap-6">
+
+    <div class="glass p-6 rounded-2xl card-hover">
+        <p class="text-sm text-white/50">משימות פתוחות</p>
+        <h2 id="tasks-count" class="text-3xl font-black">0</h2>
+    </div>
+
+    <div class="glass p-6 rounded-2xl card-hover">
+        <p class="text-sm text-white/50">תקלות פעילות</p>
+        <h2 id="errors-count" class="text-3xl font-black text-red-400">0</h2>
+    </div>
+
+    <div class="glass p-6 rounded-2xl card-hover">
+        <p class="text-sm text-white/50">סטטוס מערכת</p>
+        <h2 class="text-3xl font-black text-green-400">Online</h2>
+    </div>
+
+</div>
+
+<!-- TASKS -->
+<div class="glass p-8 rounded-3xl space-y-6">
+
+    <div class="flex justify-between items-center">
+        <h2 class="text-xl font-black">משימות</h2>
+    </div>
+
+    <div class="flex gap-2">
+        <input id="new-task"
+            class="flex-1 bg-white/10 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="משימה חדשה">
+
+        <button onclick="addTask()"
+            class="bg-blue-600 px-6 rounded-xl font-bold hover:bg-blue-500">
+            הוסף
+        </button>
+    </div>
+
+    <ul id="tasks-list" class="space-y-3"></ul>
+
+</div>
+
+<!-- ERRORS -->
+<div class="space-y-4">
+
+    <h2 class="text-xl font-black text-red-400">תקלות</h2>
+
+    <div id="errors-feed" class="grid gap-4"></div>
+
+</div>
+
+</main>
+
+<script>
+
+// TASKS
+let tasks = JSON.parse(localStorage.getItem('dor_ops_tasks') || '[]');
+
+function renderTasks() {
+    const list = document.getElementById('tasks-list');
+    const count = document.getElementById('tasks-count');
+
+    count.innerText = tasks.length;
+    list.innerHTML = '';
+
+    if (!tasks.length) {
+        list.innerHTML = `<div class="text-white/40">אין משימות</div>`;
+        return;
+    }
+
+    tasks.forEach((t,i)=>{
+        list.innerHTML += `
+        <li class="glass p-4 rounded-xl flex justify-between card-hover">
+            ${t}
+            <button onclick="completeTask(${i})"
+                class="text-green-400 hover:text-white">
+                ✓
+            </button>
+        </li>`;
+    });
+}
+
+function addTask(){
+    const input = document.getElementById('new-task');
+    if(!input.value.trim()) return;
+
+    tasks.push(input.value);
+    localStorage.setItem('dor_ops_tasks', JSON.stringify(tasks));
+    input.value='';
+    renderTasks();
+}
+
+function completeTask(i){
+    tasks.splice(i,1);
+    localStorage.setItem('dor_ops_tasks', JSON.stringify(tasks));
+    renderTasks();
+}
+
+// ERRORS
+const GET_DATA_URL = 'https://hook.eu1.make.com/29sgfpk1oi15bvihqyalezspk1dnithw'; 
+const UPDATE_STATUS_URL = 'https://hook.eu1.make.com/cuehxvvwthe9885ub50esv4w8sc1eqye'; 
+
+async function fetchErrors(){
+    const res = await fetch(GET_DATA_URL);
+    const raw = await res.json();
+    let items = (raw[0]?.body)||raw;
+
+    const active = items.filter(i => (i.data?.Status || i.Status) !== 'Done');
+
+    document.getElementById('errors-count').innerText = active.length;
+
+    const container = document.getElementById('errors-feed');
+
+    container.innerHTML = active.map(item=>{
+        const d = item.data || item;
+        const key = item.key || d.key;
+
+        return `
+        <div class="glass p-6 rounded-2xl card-hover space-y-3">
+
+            <div class="flex justify-between">
+                <span class="text-red-400 text-sm font-bold">
+                    ${d.Organization || 'ארגון'}
+                </span>
+                <span class="text-white/30 text-xs">
+                    ${d.Timestamp ? new Date(d.Timestamp).toLocaleString('he-IL') : ''}
+                </span>
             </div>
 
-            <ul id="tasks-list" class="flex flex-col gap-3">
-                </ul>
-        </div>
-
-        <div class="flex items-center gap-4 mb-6 px-4">
-            <h2 class="text-lg font-black text-slate-400 tracking-wide">🚨 תקלות פתוחות במערכת</h2>
-            <div class="h-px bg-slate-200 flex-1"></div>
-        </div>
-
-        <div id="errors-feed" class="grid gap-8">
-            <div class="bg-white p-16 rounded-[2.5rem] text-center shadow-sm">
-                <p class="text-slate-400 font-bold animate-pulse">טוען נתונים מהמערכת...</p>
+            <div class="font-black text-lg">
+                ${d.Scenario_Name || 'Scenario'}
             </div>
-        </div>
-    </main>
 
-    <script>
-        // ==========================================
-        // מערכת משימות
-        // ==========================================
-        
-        let tasks = [];
-        
-        try {
-            const saved = localStorage.getItem('dor_ops_tasks');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed)) {
-                    tasks = parsed;
-                }
-            }
-        } catch (e) {
-            tasks = [];
-        }
+            <div class="bg-black/50 p-3 rounded-xl font-mono text-sm text-blue-300">
+                ${d.Error_Type || ''}
+            </div>
 
-        window.renderTasks = function() {
-            const list = document.getElementById('tasks-list');
-            list.innerHTML = '';
-            
-            if (tasks.length === 0) {
-                list.innerHTML = '<li class="text-slate-400 text-sm font-bold text-center py-8 border-2 border-dashed border-slate-100 rounded-[1.5rem]">אין משימות פתוחות כרגע. אפשר לנוח! ☕</li>';
-                return;
-            }
+            <button onclick="done('${key}')"
+                class="w-full bg-blue-600 py-2 rounded-xl font-bold hover:bg-blue-500">
+                סגור תקלה
+            </button>
 
-            tasks.forEach((task, index) => {
-                // עיצוב שורת משימה מודרני ועדין
-                list.innerHTML += `
-                    <li class="flex justify-between items-center bg-white border border-slate-100 p-2.5 pr-5 rounded-[1.5rem] shadow-sm transition-all hover:shadow-md hover:border-blue-100 group">
-                        <span class="text-slate-700 font-bold text-sm leading-tight">${task}</span>
-                        <button onclick="window.completeTask(${index})" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-100 hover:border-emerald-500 px-5 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 whitespace-nowrap opacity-90 group-hover:opacity-100">✓ סיימתי</button>
-                    </li>
-                `;
-            });
-        };
+        </div>`;
+    }).join('');
+}
 
-        window.addTask = function() {
-            const input = document.getElementById('new-task');
-            const taskText = input.value.trim();
-            
-            if (taskText !== '') {
-                tasks.push(taskText);
-                localStorage.setItem('dor_ops_tasks', JSON.stringify(tasks));
-                input.value = ''; 
-                window.renderTasks();
-            }
-        };
+async function done(key){
+    await fetch(`${UPDATE_STATUS_URL}?key=${key}&status=Done`);
+    fetchErrors();
+}
 
-        window.completeTask = function(index) {
-            tasks.splice(index, 1);
-            localStorage.setItem('dor_ops_tasks', JSON.stringify(tasks));
-            window.renderTasks();
-        };
+// INIT
+renderTasks();
+fetchErrors();
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const btn = document.getElementById('add-task-btn');
-            const input = document.getElementById('new-task');
+</script>
 
-            if (btn) btn.addEventListener('click', window.addTask);
-            if (input) {
-                input.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') window.addTask();
-                });
-            }
-            window.renderTasks();
-        });
-
-        // ==========================================
-        // מערכת שגיאות (Make) 
-        // ==========================================
-        const GET_DATA_URL = 'https://hook.eu1.make.com/29sgfpk1oi15bvihqyalezspk1dnithw'; 
-        const UPDATE_STATUS_URL = 'https://hook.eu1.make.com/cuehxvvwthe9885ub50esv4w8sc1eqye'; 
-
-        window.fetchErrors = async function() {
-            try {
-                const response = await fetch(GET_DATA_URL);
-                const raw = await response.json();
-                let items = (Array.isArray(raw) && raw.length > 0 && raw[0].body) ? raw[0].body : (Array.isArray(raw) ? raw : []);
-                render(items);
-            } catch (e) {
-                document.getElementById('errors-feed').innerHTML = `<div class="bg-white p-10 rounded-3xl text-center text-red-600 font-bold">שגיאת תקשורת</div>`;
-            }
-        };
-
-        function render(items) {
-            const container = document.getElementById('errors-feed');
-            const active = items.filter(i => (i.data?.Status || i.Status) !== 'Done');
-
-            if (active.length === 0) {
-                container.innerHTML = `<div class="bg-white p-20 rounded-[2.5rem] text-center shadow-sm border border-slate-100"><p class="text-xl font-bold text-slate-700">הכל נקי, דור!</p></div>`;
-                return;
-            }
-
-            container.innerHTML = active.map(item => {
-                const d = item.data || item;
-                const key = item.key || d.Key || d.key;
-                
-                const org = d.Organization || d.organization || 'ארגון כללי';
-                const scenario = d.Scenario_Name || d.scenario || 'ללא שם';
-                const url = d.Scenario_URL || d.scenario_url || d.url || ""; 
-                const error = d.Error_Type || d.error || "לא נמצא פירוט לשגיאה";
-                const formattedDate = d.Timestamp ? new Date(d.Timestamp).toLocaleString('he-IL') : '';
-
-                return `
-                <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm flex flex-col gap-6">
-                    <div class="w-full text-right">
-                        <div class="flex justify-between items-center mb-6 text-right">
-                            <span class="bg-red-50 text-red-500 px-2 py-0.5 rounded border border-red-100 italic text-[10px] font-black tracking-widest uppercase">Make Incident</span>
-                            <span class="text-slate-400 text-[11px] font-bold">${formattedDate}</span>
-                        </div>
-
-                        <div class="mb-4 text-right">
-                            <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 inline-block min-w-[200px] shadow-sm">
-                                <p class="text-[9px] text-blue-400 font-bold uppercase mb-1 tracking-widest">לקוח / ארגון</p>
-                                <h3 class="text-blue-800 font-black text-xl leading-none">🏢 ${org}</h3>
-                            </div>
-                        </div>
-
-                        <div class="mb-8 text-right">
-                            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 block w-full shadow-sm text-left" dir="ltr">
-                                <p class="text-[9px] text-slate-400 font-bold uppercase mb-2 tracking-widest">Scenario Context:</p>
-                                <h2 class="text-2xl font-black text-slate-800 leading-tight">${scenario}</h2>
-                            </div>
-                        </div>
-
-                        <div class="text-right">
-                             <p class="text-slate-400 text-[9px] font-bold uppercase mb-2 tracking-widest">תיאור טכני:</p>
-                             <div class="bg-slate-900 rounded-2xl p-5 font-mono text-[13px] text-blue-200 shadow-inner border border-slate-800 text-left leading-relaxed" dir="ltr">
-                                <span class="text-red-500 font-bold mr-2">>>></span> ${error.split('Need any help')[0].trim()}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <button onclick="window.done('${key}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl text-xs shadow-xl shadow-blue-200 transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1">סיימתי לטפל ✓</button>
-                        ${url ? `<a href="${url}" target="_blank" class="flex-1 bg-slate-800 hover:bg-black text-white font-bold py-5 rounded-2xl text-center text-xs shadow-lg transition-all">פתח במייק ↗</a>` : ''}
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        window.done = async function(key) {
-            try {
-                await fetch(`${UPDATE_STATUS_URL}?key=${encodeURIComponent(key)}&status=Done`);
-                window.fetchErrors();
-            } catch (e) { alert('העדכון נכשל'); }
-        };
-
-        window.fetchErrors();
-    </script>
 </body>
 </html>
