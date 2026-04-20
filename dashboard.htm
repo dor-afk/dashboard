@@ -13,22 +13,31 @@
     <nav class="bg-slate-900 text-white p-5 shadow-lg mb-10 border-b-4 border-blue-600">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tighter uppercase text-white">DOR <span class="text-blue-400">OPS</span></h1>
-            <button onclick="fetchErrors()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-xl font-bold text-sm shadow-lg">רענן נתונים</button>
+            <button onclick="fetchErrors()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-xl font-bold text-sm shadow-lg transition-all active:scale-95">רענן נתונים</button>
         </div>
     </nav>
 
     <main class="max-w-3xl mx-auto px-4">
         
-        <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm flex flex-col gap-6 mb-8">
-            <h2 class="text-xl font-black text-slate-800">📋 צ'ק ליסט משימות</h2>
+        <div class="bg-gradient-to-br from-blue-800 to-indigo-900 rounded-[2.5rem] p-8 shadow-2xl shadow-blue-900/20 flex flex-col gap-6 mb-12 border border-blue-700/50 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
             
-            <div class="flex gap-3">
-                <input type="text" id="new-task" placeholder="מה צריך לעשות?" class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 text-sm font-bold focus:outline-none focus:border-blue-400 focus:bg-white transition-all">
-                <button onclick="addTask()" class="bg-slate-800 hover:bg-black text-white font-bold px-6 py-3 rounded-2xl text-sm shadow-md transition-all active:translate-y-1">הוסף</button>
+            <h2 class="text-2xl font-black text-white flex items-center gap-3 relative z-10">
+                <span class="text-blue-300 text-3xl">📋</span> צ'ק ליסט משימות
+            </h2>
+            
+            <div class="flex gap-3 relative z-10">
+                <input type="text" id="new-task" placeholder="מה צריך לעשות עכשיו?" class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-base font-bold text-white placeholder-blue-200 focus:outline-none focus:border-blue-300 focus:bg-white/20 transition-all shadow-inner backdrop-blur-sm">
+                <button onclick="addTask()" class="bg-blue-400 hover:bg-blue-300 text-slate-900 font-black px-8 py-4 rounded-2xl text-base shadow-[0_0_15px_rgba(96,165,250,0.4)] transition-all active:translate-y-1">הוסף</button>
             </div>
 
-            <ul id="tasks-list" class="flex flex-col gap-3">
+            <ul id="tasks-list" class="flex flex-col gap-3 relative z-10">
                 </ul>
+        </div>
+
+        <div class="flex items-center gap-4 mb-6 px-4">
+            <h2 class="text-xl font-black text-slate-800">🚨 תקלות פתוחות במערכת</h2>
+            <div class="h-px bg-slate-300 flex-1"></div>
         </div>
 
         <div id="errors-feed" class="grid gap-8">
@@ -43,7 +52,6 @@
         // מערכת משימות (Checklist)
         // ==========================================
         
-        // משיכת משימות מהזיכרון של הדפדפן (כדי שלא יימחקו ברענון)
         let tasks = JSON.parse(localStorage.getItem('dor_ops_tasks')) || [];
 
         function renderTasks() {
@@ -51,15 +59,15 @@
             list.innerHTML = '';
             
             if (tasks.length === 0) {
-                list.innerHTML = '<p class="text-slate-400 text-sm font-bold text-center py-4">אין משימות כרגע, הכל נקי! ✨</p>';
+                list.innerHTML = '<li class="text-blue-200 text-sm font-bold text-center py-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">אין משימות פתוחות, אפשר לשתות קפה! ☕</li>';
                 return;
             }
 
             tasks.forEach((task, index) => {
                 list.innerHTML += `
-                    <li class="flex justify-between items-center bg-blue-50/50 border border-blue-100 p-4 rounded-2xl">
-                        <span class="text-slate-700 font-bold text-sm pl-4">${task}</span>
-                        <button onclick="completeTask(${index})" class="bg-white border border-green-200 text-green-600 hover:bg-green-500 hover:text-white px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-sm">✓ בוצע</button>
+                    <li class="flex justify-between items-center bg-white/10 border border-white/20 p-4 rounded-2xl shadow-sm backdrop-blur-sm transition-all hover:bg-white/15">
+                        <span class="text-white font-bold text-base pl-4 leading-tight">${task}</span>
+                        <button onclick="completeTask(${index})" class="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/30 active:scale-95 whitespace-nowrap">✓ סיימתי</button>
                     </li>
                 `;
             });
@@ -72,28 +80,25 @@
             if (taskText !== '') {
                 tasks.push(taskText);
                 localStorage.setItem('dor_ops_tasks', JSON.stringify(tasks));
-                input.value = ''; // ניקוי שדה הטקסט
+                input.value = ''; 
                 renderTasks();
             }
         }
 
         function completeTask(index) {
-            // מחיקת המשימה מהמערך ועדכון הזיכרון
             tasks.splice(index, 1);
             localStorage.setItem('dor_ops_tasks', JSON.stringify(tasks));
             renderTasks();
         }
 
-        // האזנה למקש Enter בשדה הטקסט של המשימות
         document.getElementById('new-task').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') addTask();
         });
 
-        // טעינת המשימות בפתיחת העמוד
         renderTasks();
 
         // ==========================================
-        // מערכת שגיאות (Make) - מקורי
+        // מערכת שגיאות (Make) 
         // ==========================================
         const GET_DATA_URL = 'https://hook.eu1.make.com/29sgfpk1oi15bvihqyalezspk1dnithw'; 
         const UPDATE_STATUS_URL = 'https://hook.eu1.make.com/cuehxvvwthe9885ub50esv4w8sc1eqye'; 
@@ -144,36 +149,4 @@
                         </div>
 
                         <div class="mb-8 text-right">
-                            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 block w-full shadow-sm text-left" dir="ltr">
-                                <p class="text-[9px] text-slate-400 font-bold uppercase mb-2 tracking-widest">Scenario Context:</p>
-                                <h2 class="text-2xl font-black text-slate-800 leading-tight">${scenario}</h2>
-                            </div>
-                        </div>
-
-                        <div class="text-right">
-                             <p class="text-slate-400 text-[9px] font-bold uppercase mb-2 tracking-widest">תיאור טכני:</p>
-                             <div class="bg-slate-900 rounded-2xl p-5 font-mono text-[13px] text-blue-200 shadow-inner border border-slate-800 text-left leading-relaxed" dir="ltr">
-                                <span class="text-red-500 font-bold mr-2">>>></span> ${error.split('Need any help')[0].trim()}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <button onclick="done('${key}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl text-xs shadow-xl shadow-blue-200 transition-all border-b-4 border-blue-800 active:border-b-0 active:translate-y-1">סיימתי לטפל ✓</button>
-                        ${url ? `<a href="${url}" target="_blank" class="flex-1 bg-slate-800 hover:bg-black text-white font-bold py-5 rounded-2xl text-center text-xs shadow-lg transition-all">פתח במייק ↗</a>` : ''}
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        async function done(key) {
-            try {
-                await fetch(`${UPDATE_STATUS_URL}?key=${encodeURIComponent(key)}&status=Done`);
-                fetchErrors();
-            } catch (e) { alert('העדכון נכשל'); }
-        }
-
-        fetchErrors();
-    </script>
-</body>
-</html>
+                            <div class="bg-slate-50 border border-
