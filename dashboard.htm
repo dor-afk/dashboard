@@ -3,134 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DOR OPS - Pro Dashboard</title>
+<title>DOR OPS</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 body {
     font-family: 'Assistant', sans-serif;
     background: #020617;
 }
-.glass {
+
+.card {
     background: rgba(255,255,255,0.04);
-    backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 1rem;
 }
-.card-hover:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+
+.item {
+    background: rgba(15,23,42,0.6);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 0.75rem;
+}
+
+.item:hover {
+    border-color: #3b82f6;
 }
 </style>
 </head>
 
-<body class="text-white flex">
+<body class="text-white">
 
-<!-- SIDEBAR -->
-<aside class="w-64 h-screen glass p-6 flex flex-col gap-6 fixed">
+<div class="max-w-6xl mx-auto px-6 py-10 space-y-8">
 
-    <h1 class="text-2xl font-black">
+<!-- HEADER -->
+<div class="flex justify-between items-center">
+    <h1 class="text-2xl font-extrabold tracking-tight">
         DOR <span class="text-blue-400">OPS</span>
     </h1>
 
-    <nav class="flex flex-col gap-3 text-sm">
-        <a class="bg-blue-600 px-4 py-2 rounded-xl font-bold">דשבורד</a>
-        <a class="hover:bg-white/10 px-4 py-2 rounded-xl">משימות</a>
-        <a class="hover:bg-white/10 px-4 py-2 rounded-xl">תקלות</a>
-    </nav>
+    <button onclick="fetchErrors()"
+        class="bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-xl text-sm font-bold transition">
+        רענן נתונים
+    </button>
+</div>
 
-    <div class="mt-auto">
-        <button onclick="fetchErrors()" 
-            class="w-full bg-white text-black py-2 rounded-xl font-bold hover:scale-105 transition">
-            רענן נתונים
-        </button>
+<!-- STATS -->
+<div class="grid md:grid-cols-3 gap-4">
+
+    <div class="card p-5">
+        <p class="text-xs text-white/50">משימות פתוחות</p>
+        <h2 id="tasks-count" class="text-2xl font-black mt-1">0</h2>
     </div>
 
-</aside>
-
-<!-- MAIN -->
-<main class="ml-64 w-full p-10 space-y-10">
-
-<!-- TOP STATS -->
-<div class="grid grid-cols-3 gap-6">
-
-    <div class="glass p-6 rounded-2xl card-hover">
-        <p class="text-sm text-white/50">משימות פתוחות</p>
-        <h2 id="tasks-count" class="text-3xl font-black">0</h2>
+    <div class="card p-5">
+        <p class="text-xs text-white/50">תקלות פעילות</p>
+        <h2 id="errors-count" class="text-2xl font-black mt-1 text-red-400">0</h2>
     </div>
 
-    <div class="glass p-6 rounded-2xl card-hover">
-        <p class="text-sm text-white/50">תקלות פעילות</p>
-        <h2 id="errors-count" class="text-3xl font-black text-red-400">0</h2>
-    </div>
-
-    <div class="glass p-6 rounded-2xl card-hover">
-        <p class="text-sm text-white/50">סטטוס מערכת</p>
-        <h2 class="text-3xl font-black text-green-400">Online</h2>
+    <div class="card p-5">
+        <p class="text-xs text-white/50">סטטוס מערכת</p>
+        <h2 class="text-2xl font-black mt-1 text-green-400">Online</h2>
     </div>
 
 </div>
 
-<!-- TASKS -->
-<div class="glass p-8 rounded-3xl space-y-6">
+<!-- MAIN -->
+<div class="grid lg:grid-cols-2 gap-6">
 
-    <div class="flex justify-between items-center">
-        <h2 class="text-xl font-black">משימות</h2>
-    </div>
+<!-- TASKS -->
+<div class="card p-6 space-y-4">
+
+    <h2 class="text-lg font-bold">משימות</h2>
 
     <div class="flex gap-2">
         <input id="new-task"
-            class="flex-1 bg-white/10 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="משימה חדשה">
+            class="flex-1 bg-white/10 p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="הוסף משימה">
 
         <button onclick="addTask()"
-            class="bg-blue-600 px-6 rounded-xl font-bold hover:bg-blue-500">
+            class="bg-blue-600 hover:bg-blue-500 px-4 rounded-lg text-sm font-bold">
             הוסף
         </button>
     </div>
 
-    <ul id="tasks-list" class="space-y-3"></ul>
+    <ul id="tasks-list" class="space-y-2"></ul>
 
 </div>
 
 <!-- ERRORS -->
 <div class="space-y-4">
 
-    <h2 class="text-xl font-black text-red-400">תקלות</h2>
+    <h2 class="text-lg font-bold text-red-400">תקלות</h2>
 
-    <div id="errors-feed" class="grid gap-4"></div>
+    <div id="errors-feed" class="space-y-3"></div>
 
 </div>
 
-</main>
+</div>
+
+</div>
 
 <script>
 
 // TASKS
 let tasks = JSON.parse(localStorage.getItem('dor_ops_tasks') || '[]');
 
-function renderTasks() {
+function renderTasks(){
     const list = document.getElementById('tasks-list');
-    const count = document.getElementById('tasks-count');
+    document.getElementById('tasks-count').innerText = tasks.length;
 
-    count.innerText = tasks.length;
     list.innerHTML = '';
 
-    if (!tasks.length) {
-        list.innerHTML = `<div class="text-white/40">אין משימות</div>`;
+    if(!tasks.length){
+        list.innerHTML = `<div class="text-white/40 text-sm text-center py-4">אין משימות</div>`;
         return;
     }
 
     tasks.forEach((t,i)=>{
         list.innerHTML += `
-        <li class="glass p-4 rounded-xl flex justify-between card-hover">
-            ${t}
+        <li class="item px-4 py-3 flex justify-between items-center group transition">
+
+            <div class="flex items-center gap-3">
+                <button onclick="completeTask(${i})"
+                    class="w-5 h-5 border-2 border-blue-400 rounded flex items-center justify-center hover:bg-blue-500 transition">
+                </button>
+
+                <span class="text-sm font-semibold">
+                    ${t}
+                </span>
+            </div>
+
             <button onclick="completeTask(${i})"
-                class="text-green-400 hover:text-white">
-                ✓
+                class="text-xs text-white/30 hover:text-red-400 opacity-0 group-hover:opacity-100 transition">
+                מחק
             </button>
+
         </li>`;
     });
 }
@@ -161,37 +169,41 @@ async function fetchErrors(){
     let items = (raw[0]?.body)||raw;
 
     const active = items.filter(i => (i.data?.Status || i.Status) !== 'Done');
-
     document.getElementById('errors-count').innerText = active.length;
 
     const container = document.getElementById('errors-feed');
+
+    if(!active.length){
+        container.innerHTML = `<div class="card p-6 text-center">הכל תקין 👍</div>`;
+        return;
+    }
 
     container.innerHTML = active.map(item=>{
         const d = item.data || item;
         const key = item.key || d.key;
 
         return `
-        <div class="glass p-6 rounded-2xl card-hover space-y-3">
+        <div class="card p-5 space-y-3">
 
-            <div class="flex justify-between">
-                <span class="text-red-400 text-sm font-bold">
+            <div class="flex justify-between text-xs">
+                <span class="text-red-400 font-bold">
                     ${d.Organization || 'ארגון'}
                 </span>
-                <span class="text-white/30 text-xs">
+                <span class="text-white/30">
                     ${d.Timestamp ? new Date(d.Timestamp).toLocaleString('he-IL') : ''}
                 </span>
             </div>
 
-            <div class="font-black text-lg">
-                ${d.Scenario_Name || 'Scenario'}
+            <div class="text-sm font-bold">
+                ${d.Scenario_Name || ''}
             </div>
 
-            <div class="bg-black/50 p-3 rounded-xl font-mono text-sm text-blue-300">
+            <div class="bg-black/40 p-3 rounded text-xs font-mono text-blue-300">
                 ${d.Error_Type || ''}
             </div>
 
             <button onclick="done('${key}')"
-                class="w-full bg-blue-600 py-2 rounded-xl font-bold hover:bg-blue-500">
+                class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded-lg text-sm font-bold transition">
                 סגור תקלה
             </button>
 
