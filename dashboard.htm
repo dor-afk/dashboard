@@ -11,7 +11,7 @@
 <style>
 body {
     font-family: 'Assistant', sans-serif;
-    background: #f1f5f9; /* רקע מעט כהה יותר כדי להבליט את הכרטיסיות הלבנות */
+    background: #f1f5f9; 
 }
 
 .card {
@@ -24,7 +24,7 @@ body {
 .item {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-right: 5px solid #3b82f6; /* פס דגש כחול בולט */
+    border-right: 5px solid #3b82f6; 
     border-radius: 0.75rem;
     transition: all 0.2s ease;
 }
@@ -35,7 +35,6 @@ body {
     border-right-color: #2563eb;
 }
 
-/* סגנון לשדה הקלט */
 .input-focus:focus {
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
@@ -185,55 +184,65 @@ const GET_DATA_URL = 'https://hook.eu1.make.com/29sgfpk1oi15bvihqyalezspk1dnithw
 const UPDATE_STATUS_URL = 'https://hook.eu1.make.com/cuehxvvwthe9885ub50esv4w8sc1eqye'; 
 
 async function fetchErrors(){
-    const res = await fetch(GET_DATA_URL);
-    const raw = await res.json();
-    let items = (raw[0]?.body)||raw;
+    try {
+        const res = await fetch(GET_DATA_URL);
+        const raw = await res.json();
+        
+        let items = Array.isArray(raw) ? raw : (raw[0]?.body || []);
 
-    const active = items.filter(i => (i.data?.Status || i.Status) !== 'Done');
-    document.getElementById('errors-count').innerText = active.length;
+        const active = items.filter(i => (i.data?.Status || i.Status) !== 'Done');
+        
+        document.getElementById('errors-count').innerText = active.length;
+        const container = document.getElementById('errors-feed');
 
-    const container = document.getElementById('errors-feed');
+        if(!active.length){
+            container.innerHTML = `
+            <div class="card p-12 text-center text-slate-400 font-bold border-dashed border-2 border-slate-200">
+                <span class="text-4xl block mb-2">✅</span>
+                הכל עובד תקין
+            </div>`;
+            return;
+        }
 
-    if(!active.length){
-        container.innerHTML = `
-        <div class="card p-12 text-center text-slate-400 font-bold border-dashed border-2 border-slate-200">
-            <span class="text-4xl block mb-2">✅</span>
-            הכל עובד תקין
-        </div>`;
-        return;
+        container.innerHTML = active.map(item => {
+            const d = item.data || item;
+            const key = item.key || d.key || d.Scenario_Name; 
+
+            return `
+            <div class="card p-6 space-y-4 hover:border-blue-200 transition-colors shadow-lg">
+
+                <div class="flex justify-between items-center">
+                    <span class="text-blue-700 bg-blue-100 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider">
+                        🏢 ${d.organization || d.Organization || 'ארגון'}
+                    </span>
+                    <span class="text-slate-400 text-[11px] font-bold">
+                        ${d.Timestamp ? new Date(d.Timestamp).toLocaleString('he-IL') : ''}
+                    </span>
+                </div>
+
+                <div class="text-lg font-black text-slate-900">
+                    ${d.Scenario_Name || 'סנריו ללא שם'}
+                </div>
+
+                <div class="bg-slate-900 p-4 rounded-xl text-[12px] font-mono text-blue-300 leading-relaxed shadow-inner border border-slate-800 overflow-x-auto">
+                    <span class="text-red-500 font-bold">ERROR ></span> ${d.Error_Type || 'שגיאה'}
+                </div>
+
+                <button onclick="done('${key}')"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-sm font-black shadow-md transition-all active:scale-[0.98]">
+                    ✓ טיפלתי בזה
+                </button>
+
+            </div>`;
+        }).join('');
+        
+    } catch (error) {
+        console.error("Error fetching data from Make:", error);
+        document.getElementById('errors-feed').innerHTML = `
+            <div class="card p-6 text-center text-red-500 font-bold border-dashed border-2 border-red-200">
+                שגיאה במשיכת הנתונים מהוובהוק.
+            </div>`;
     }
-
-    container.innerHTML = active.map(item=>{
-        const d = item.data || item;
-        const key = item.key || d.key;
-
-        return `
-        <div class="card p-6 space-y-4 hover:border-blue-200 transition-colors shadow-lg">
-
-            <div class="flex justify-between items-center">
-                <span class="text-blue-700 bg-blue-100 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider">
-                    🏢 ${d.Organization || 'ארגון'}
-                </span>
-                <span class="text-slate-400 text-[11px] font-bold">
-                    ${d.Timestamp ? new Date(d.Timestamp).toLocaleString('he-IL') : ''}
-                </span>
-            </div>
-
-            <div class="text-lg font-black text-slate-900">
-                ${d.Scenario_Name || 'סנריו ללא שם'}
-            </div>
-
-            <div class="bg-slate-900 p-4 rounded-xl text-[12px] font-mono text-blue-300 leading-relaxed shadow-inner border border-slate-800 overflow-x-auto">
-                <span class="text-red-500 font-bold">ERROR ></span> ${d.Error_Type || 'שגיאה'}
-            </div>
-
-            <button onclick="done('${key}')"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-sm font-black shadow-md transition-all active:scale-[0.98]">
-                ✓ טיפלתי בזה
-            </button>
-
-        </div>`;
-    }).join('');
 }
 
 async function done(key){
