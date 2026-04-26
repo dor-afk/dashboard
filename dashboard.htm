@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DOR OPS</title>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
@@ -26,17 +28,30 @@ body {
     border: 1px solid #e2e8f0;
     border-right: 5px solid #3b82f6; 
     border-radius: 0.75rem;
-    transition: all 0.2s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease; /* הסרנו את ה-translate כדי שלא יתנגש עם הגרירה */
 }
 
 .item:hover {
-    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     border-right-color: #2563eb;
 }
 
 .input-focus:focus {
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* מחלקה שמופעלת בזמן גרירת המשימה */
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: #f8fafc;
+}
+
+/* סמן גרירה */
+.drag-handle {
+    cursor: grab;
+}
+.drag-handle:active {
+    cursor: grabbing;
 }
 </style>
 </head>
@@ -133,21 +148,25 @@ function renderTasks(){
 
     tasks.forEach((t,i)=>{
         list.innerHTML += `
-        <li class="item px-5 py-4 flex justify-between items-center group shadow-md">
+        <li class="item px-3 py-4 flex justify-between items-center group shadow-md" data-index="${i}">
 
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3 w-full">
+                <div class="drag-handle text-slate-300 hover:text-slate-500 px-2 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm6-12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
+                </div>
+
                 <button onclick="completeTask(${i})"
-                    class="w-6 h-6 border-2 border-blue-400 rounded-lg bg-white hover:bg-blue-500 hover:border-blue-500 transition-all flex items-center justify-center group/btn shadow-sm">
+                    class="w-6 h-6 border-2 border-blue-400 rounded-lg bg-white hover:bg-blue-500 hover:border-blue-500 transition-all flex items-center justify-center group/btn shadow-sm shrink-0">
                     <svg class="w-4 h-4 text-white opacity-0 group-hover/btn:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                 </button>
 
-                <span class="text-base font-bold text-slate-800 tracking-tight">
+                <span class="text-base font-bold text-slate-800 tracking-tight flex-1">
                     ${t}
                 </span>
             </div>
 
             <button onclick="completeTask(${i})"
-                class="text-xs font-black text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all uppercase tracking-tighter">
+                class="text-xs font-black text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all uppercase tracking-tighter shrink-0 px-2">
                 מחק
             </button>
 
@@ -171,8 +190,24 @@ function completeTask(i){
     renderTasks();
 }
 
-// Enter Key Listener
+// הפעלת מנגנון הגרירה (SortableJS)
 document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('tasks-list');
+    new Sortable(el, {
+        handle: '.drag-handle', // מגדיר שאפשר לגרור רק כשלוחצים על האייקון 
+        animation: 150, // אנימציה חלקה של הגרירה
+        ghostClass: 'sortable-ghost', // עיצוב הפריט בזמן שהוא נגרר
+        onEnd: function (evt) {
+            // מעדכן את המערך מאחורי הקלעים בהתאם לסדר החדש ושומר בזיכרון
+            const movedItem = tasks.splice(evt.oldIndex, 1)[0];
+            tasks.splice(evt.newIndex, 0, movedItem);
+            localStorage.setItem('dor_ops_tasks', JSON.stringify(tasks));
+            // מרענן מחדש כדי לסדר את האינדקסים (חשוב כדי שהמחיקה תמשיך לעבוד נכון)
+            renderTasks();
+        }
+    });
+
+    // מאזין ללחיצה על Enter בשדה הקלט
     const input = document.getElementById('new-task');
     if (input) {
         input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
