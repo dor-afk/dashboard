@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamburg Law - Task Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Assistant', sans-serif; background-color: #f1f5f9; }
+        .unread-glow { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); border: 2px solid #3b82f6; }
+        .urgent-border { border-right: 8px solid #ef4444; }
+        .filter-btn.active { background-color: #1e293b; color: white; }
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+
+    <!-- Header -->
+    <nav class="bg-slate-900 text-white p-6 shadow-xl mb-6">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-black tracking-tighter uppercase">DOR <span class="text-blue-400">OPS</span> | <span class="text-slate-400">LEGAL</span></h1>
+                <p class="text-[10px] text-blue-300 font-bold">חנה גמבורג עו"ד - ניהול משימות משרד</p>
+            </div>
+            <div class="flex gap-4 items-center">
+                <div class="text-left hidden md:block">
+                    <p class="text-xs text-slate-400 font-bold uppercase">משימות שלא נקראו</p>
+                    <p class="text-xl font-black text-red-500">3</p>
+                </div>
+                <button class="bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95">משימה חדשה +</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4">
+        
+        <!-- Filter Tabs -->
+        <div class="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+            <button onclick="filterTasks('all')" class="filter-btn active px-6 py-2 rounded-xl text-sm font-bold transition-all">הכל</button>
+            <button onclick="filterTasks('אתי')" class="filter-btn px-6 py-2 rounded-xl text-sm font-bold transition-all">אתי/מזל</button>
+            <button onclick="filterTasks('עדי')" class="filter-btn px-6 py-2 rounded-xl text-sm font-bold transition-all">עדי זיקרי</button>
+            <button onclick="filterTasks('ספיר')" class="filter-btn px-6 py-2 rounded-xl text-sm font-bold transition-all">ספיר</button>
+            <button onclick="filterTasks('מתמחה')" class="filter-btn px-6 py-2 rounded-xl text-sm font-bold transition-all">מתמחה</button>
+            <div class="mr-auto flex gap-2">
+                <button class="px-3 py-2 text-red-600 text-xs font-black uppercase border border-red-100 rounded-lg bg-red-50">🔥 דחוף</button>
+                <button class="px-3 py-2 text-blue-600 text-xs font-black uppercase border border-blue-100 rounded-lg bg-blue-50">✉️ לא נקרא</button>
+            </div>
+        </div>
+
+        <!-- Task Feed -->
+        <div id="task-list" class="grid gap-6">
+            <!-- Task 1 (Urgent & Unread) -->
+            <div class="task-card urgent-border unread-glow bg-white rounded-[2rem] p-8 flex flex-col md:flex-row gap-6 shadow-sm" data-mitalef="אתי">
+                <div class="flex-1 text-right">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded shadow-sm">דחוף ביותר</span>
+                        <span class="text-slate-400 text-xs font-bold uppercase">15:20 | היום</span>
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 inline-block">
+                        <p class="text-[9px] text-blue-400 font-bold uppercase mb-1">לקוח / מספר תיק</p>
+                        <h3 class="text-blue-800 font-black text-lg">סוקולנקו ורוניקה (894/0)</h3>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-6">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">תיאור המשימה:</p>
+                        <h2 class="text-2xl font-black text-slate-800 leading-tight">לקוח ביקש להקדים תשלום - בדיקת טופס 5 והגשה</h2>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-2xl p-4 font-mono text-xs text-blue-200 shadow-inner">
+                        <span class="text-yellow-400 font-bold mr-2">עדכון אחרון:</span> משימה חדשה שחנה שלחה בוואטסאפ. טרם נקרא ע"י המטפל.
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 w-full md:w-60 justify-center md:border-r md:pr-6 border-slate-100">
+                    <button class="w-full bg-slate-800 hover:bg-black text-white font-bold py-4 rounded-xl text-xs transition-all">פתח תיק בעודכנית ↗</button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="alert('סטטוס עודכן: חייגתי')" class="bg-blue-50 text-blue-600 font-bold py-3 rounded-xl text-[10px] hover:bg-blue-100 transition-all">📞 חייגתי</button>
+                        <button onclick="alert('סטטוס עודכן: שלחתי ווטסאפ')" class="bg-green-50 text-green-600 font-bold py-3 rounded-xl text-[10px] hover:bg-green-100 transition-all">💬 וואטסאפ</button>
+                    </div>
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-xs shadow-md shadow-blue-200">סומן כבוצע ✓</button>
+                </div>
+            </div>
+
+            <!-- Task 2 (Regular) -->
+            <div class="task-card bg-white border border-slate-200 rounded-[2rem] p-8 flex flex-col md:flex-row gap-6 shadow-sm" data-mitalef="עדי">
+                <div class="flex-1 text-right">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-slate-100 text-slate-500 text-[10px] font-black px-2 py-1 rounded">רגיל</span>
+                        <span class="text-slate-400 text-xs font-bold uppercase">אתמול | 17:00</span>
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 inline-block">
+                        <p class="text-[9px] text-blue-400 font-bold uppercase mb-1">לקוח / מספר תיק</p>
+                        <h3 class="text-blue-800 font-black text-lg">כהן משה (1223/4)</h3>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-6">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">תיאור המשימה:</p>
+                        <h2 class="text-2xl font-black text-slate-800 leading-tight">לקרוא נספח ולטפל - בירור האם התווסף נושה חדש בתיק</h2>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-2xl p-4 font-mono text-xs text-blue-200 shadow-inner">
+                        <span class="text-green-400 font-bold mr-2">סטטוס עדי:</span> חייגתי ללקוח לא ענה, שלחתי ווטסאפ ולקוח לא שלח חומר.
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 w-full md:w-60 justify-center md:border-r md:pr-6 border-slate-100">
+                    <button class="w-full bg-slate-800 hover:bg-black text-white font-bold py-4 rounded-xl text-xs transition-all">פתח תיק בעודכנית ↗</button>
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-xs shadow-md shadow-blue-200">סומן כבוצע ✓</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function filterTasks(name) {
+            // Update buttons visual
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.innerText.includes(name) || (name === 'all' && btn.innerText === 'הכל')) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Filter logic
+            const cards = document.querySelectorAll('.task-card');
+            cards.forEach(card => {
+                if (name === 'all' || card.getAttribute('data-mitalef') === name) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
