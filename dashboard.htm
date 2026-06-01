@@ -13,7 +13,9 @@
         body { font-family: 'Assistant', sans-serif; background: #f1f5f9; }
         .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1.25rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04); transition: opacity 0.3s ease; }
         .item { background: #ffffff; border: 1px solid #e2e8f0; border-right: 5px solid #3b82f6; border-radius: 0.75rem; transition: box-shadow 0.2s ease, border-color 0.2s ease; }
+        .item-collection { border-right: 5px solid #eab308; } /* צבע צהוב לגביה */
         .item:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); border-right-color: #2563eb; }
+        .item.item-collection:hover { border-right-color: #ca8a04; }
         .input-focus:focus { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
         .sortable-ghost { opacity: 0.4; background-color: #f8fafc; }
         .drag-handle { cursor: grab; }
@@ -22,7 +24,7 @@
 </head>
 <body class="text-slate-900">
 
-<div class="max-w-6xl mx-auto px-6 py-10 space-y-8">
+<div class="max-w-[95rem] mx-auto px-6 py-10 space-y-8">
     <div class="flex justify-between items-center">
         <h1 class="text-2xl font-extrabold tracking-tight">
             DOR <span class="text-blue-600">OPS</span>
@@ -33,10 +35,14 @@
         </button>
     </div>
 
-    <div class="grid md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
         <div class="card p-6 border-b-4 border-b-blue-500">
             <p class="text-xs text-slate-500 font-extrabold uppercase tracking-wider">משימות פתוחות</p>
             <h2 id="tasks-count" class="text-3xl font-black mt-2 text-slate-800">0</h2>
+        </div>
+        <div class="card p-6 border-b-4 border-b-yellow-500">
+            <p class="text-xs text-slate-500 font-extrabold uppercase tracking-wider">משימות גביה</p>
+            <h2 id="collections-count" class="text-3xl font-black mt-2 text-slate-800">0</h2>
         </div>
         <div class="card p-6 border-b-4 border-b-red-500">
             <p class="text-xs text-slate-500 font-extrabold uppercase tracking-wider">תקלות פעילות</p>
@@ -48,7 +54,8 @@
         </div>
     </div>
 
-    <div class="grid lg:grid-cols-2 gap-8">
+    <div class="grid lg:grid-cols-3 gap-8">
+        
         <div class="card p-8 space-y-6 bg-slate-50/50">
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-extrabold text-slate-800">📋 משימות לביצוע</h2>
@@ -65,12 +72,29 @@
             <ul id="tasks-list" class="space-y-3"></ul>
         </div>
 
+        <div class="card p-8 space-y-6 bg-slate-50/50">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-extrabold text-slate-800">💰 גביה לטיפול</h2>
+            </div>
+            <div class="flex gap-2 bg-white p-2 rounded-2xl shadow-inner border border-slate-200">
+                <input id="new-collection"
+                    class="flex-1 bg-transparent p-3 rounded-lg text-base font-semibold outline-none"
+                    placeholder="את מי צריך לחייב?">
+                <button onclick="addCollection()"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 rounded-xl text-sm font-black transition-all shadow-md shadow-yellow-200">
+                    הוסף
+                </button>
+            </div>
+            <ul id="collections-list" class="space-y-3"></ul>
+        </div>
+
         <div class="space-y-4">
             <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
                 <span class="text-red-500">🚨</span> תקלות דחופות
             </h2>
             <div id="errors-feed" class="space-y-4"></div>
         </div>
+        
     </div>
 </div>
 
@@ -127,9 +151,64 @@ function completeTask(i){
     renderTasks();
 }
 
+// --- COLLECTIONS MANAGEMENT ---
+let collections = JSON.parse(localStorage.getItem('dor_ops_collections') || '[]');
+
+function renderCollections(){
+    const list = document.getElementById('collections-list');
+    document.getElementById('collections-count').innerText = collections.length;
+    list.innerHTML = '';
+
+    if(!collections.length){
+        list.innerHTML = `
+        <div class="text-slate-400 font-bold text-center py-10 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+            אין חיובים פתוחים כרגע 💸
+        </div>`;
+        return;
+    }
+
+    collections.forEach((t,i)=>{
+        list.innerHTML += `
+        <li class="item item-collection px-3 py-4 flex justify-between items-center group shadow-md" data-index="${i}">
+            <div class="flex items-center gap-3 w-full">
+                <div class="drag-handle text-slate-300 hover:text-slate-500 px-2 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm6-12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
+                </div>
+                <button onclick="completeCollection(${i})"
+                    class="w-6 h-6 border-2 border-yellow-400 rounded-lg bg-white hover:bg-yellow-500 hover:border-yellow-500 transition-all flex items-center justify-center group/btn shadow-sm shrink-0">
+                    <svg class="w-4 h-4 text-white opacity-0 group-hover/btn:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </button>
+                <span class="text-base font-bold text-slate-800 tracking-tight flex-1">${t}</span>
+            </div>
+            <button onclick="completeCollection(${i})"
+                class="text-xs font-black text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all uppercase tracking-tighter shrink-0 px-2">
+                מחק
+            </button>
+        </li>`;
+    });
+}
+
+function addCollection(){
+    const input = document.getElementById('new-collection');
+    if(!input.value.trim()) return;
+    collections.push(input.value);
+    localStorage.setItem('dor_ops_collections', JSON.stringify(collections));
+    input.value='';
+    renderCollections();
+}
+
+function completeCollection(i){
+    collections.splice(i,1);
+    localStorage.setItem('dor_ops_collections', JSON.stringify(collections));
+    renderCollections();
+}
+
+
+// --- INITIALIZE DRAG & DROP AND EVENTS ---
 document.addEventListener('DOMContentLoaded', () => {
-    const el = document.getElementById('tasks-list');
-    new Sortable(el, {
+    // Tasks Sortable
+    const tasksEl = document.getElementById('tasks-list');
+    new Sortable(tasksEl, {
         handle: '.drag-handle',
         animation: 150,
         ghostClass: 'sortable-ghost',
@@ -141,9 +220,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const input = document.getElementById('new-task');
-    if (input) {
-        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
+    // Collections Sortable
+    const collEl = document.getElementById('collections-list');
+    new Sortable(collEl, {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: function (evt) {
+            const movedItem = collections.splice(evt.oldIndex, 1)[0];
+            collections.splice(evt.newIndex, 0, movedItem);
+            localStorage.setItem('dor_ops_collections', JSON.stringify(collections));
+            renderCollections();
+        }
+    });
+
+    // Enter Key Listeners
+    const taskInput = document.getElementById('new-task');
+    if (taskInput) {
+        taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
+    }
+    const collInput = document.getElementById('new-collection');
+    if (collInput) {
+        collInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addCollection(); });
     }
 });
 
@@ -153,7 +251,6 @@ const UPDATE_STATUS_URL = 'https://hook.eu1.make.com/cuehxvvwthe9885ub50esv4w8sc
 
 async function fetchErrors(){
     try {
-        // הוספנו תאריך כדי למנוע שמירת נתונים ישנים (Cache)
         const res = await fetch(`${GET_DATA_URL}?t=${new Date().getTime()}`);
         const raw = await res.json();
         
@@ -208,7 +305,7 @@ async function fetchErrors(){
                 </div>
             </div>`;
         }).join('');
-            
+        
     } catch (error) {
         console.error("Error fetching data from Make:", error);
         document.getElementById('errors-feed').innerHTML = `
@@ -222,7 +319,6 @@ async function done(key){
     const btn = document.getElementById(`btn-${key}`);
     const card = document.getElementById(`card-${key}`);
 
-    // חיווי ויזואלי לפני השליחה לשרת
     if(btn) {
         btn.disabled = true;
         btn.innerHTML = `
@@ -233,17 +329,16 @@ async function done(key){
         `;
     }
     if(card) {
-        card.style.opacity = '0.6'; // עושה את הכרטיסייה חצי שקופה
+        card.style.opacity = '0.6'; 
     }
 
     try {
         await fetch(`${UPDATE_STATUS_URL}?key=${key}&status=Done`);
-        fetchErrors(); // מרענן את הרשימה (מה שיעלים את הכרטיסייה)
+        fetchErrors(); 
     } catch (error) {
         console.error("Error updating status:", error);
         alert("אירעה שגיאה. לא הצלחנו לעדכן את הסטטוס.");
         
-        // החזרת הכפתור למצב הקודם במקרה של שגיאה
         if(btn) {
             btn.disabled = false;
             btn.innerHTML = "✓ טיפלתי בזה";
@@ -256,8 +351,8 @@ async function done(key){
 
 // INIT
 renderTasks();
+renderCollections();
 fetchErrors();
 </script>
-
 </body>
 </html>
