@@ -203,7 +203,6 @@ function completeCollection(i){
     renderCollections();
 }
 
-
 // --- INITIALIZE DRAG & DROP AND EVENTS ---
 document.addEventListener('DOMContentLoaded', () => {
     // Tasks Sortable
@@ -273,6 +272,10 @@ async function fetchErrors(){
             const d = item.data || item;
             const key = item.key || d.key || d.Scenario_Name; 
             const scenarioUrl = d.Scenario_URL || '#';
+            
+            // --- החלק שצומצם ---
+            const fullErrorText = d.Error_Type || 'שגיאה';
+            const shortErrorText = fullErrorText.length > 80 ? fullErrorText.substring(0, 80) + '...' : fullErrorText;
 
             return `
             <div id="card-${key}" class="card p-6 space-y-4 hover:border-blue-200 transition-all shadow-lg flex flex-col">
@@ -289,8 +292,8 @@ async function fetchErrors(){
                     ${d.Scenario_Name || 'סנריו ללא שם'}
                 </div>
                 
-                <div class="bg-slate-900 p-4 rounded-xl text-[12px] font-mono text-blue-300 leading-relaxed shadow-inner border border-slate-800 overflow-x-auto mb-auto">
-                    <span class="text-red-500 font-bold">ERROR ></span> ${d.Error_Type || 'שגיאה'}
+                <div class="bg-slate-900 p-4 rounded-xl text-[12px] font-mono text-blue-300 leading-relaxed shadow-inner border border-slate-800 overflow-x-auto mb-auto" title="${fullErrorText.replace(/"/g, '&quot;')}">
+                    <span class="text-red-500 font-bold">ERROR ></span> ${shortErrorText}
                 </div>
                 
                 <div class="flex gap-3 pt-2">
@@ -354,5 +357,6 @@ renderTasks();
 renderCollections();
 fetchErrors();
 </script>
+
 </body>
 </html>
